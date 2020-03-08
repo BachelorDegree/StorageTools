@@ -12,19 +12,9 @@ struct chunk_header
     char magic[16];
     int32_t version;
     uint64_t chunk_id;
-    uint32_t current_inode;
+    uint32_t next_inode;
     uint32_t logical_used_space;
     uint32_t actual_used_space;
-    chunk_header(void) = default;
-    chunk_header(uint64_t current_inode):
-        current_inode(current_inode)
-    {
-        strcpy(magic, "ALOHA");
-        version = 1;
-        current_inode = 0;
-        logical_used_space = 0;
-        actual_used_space = 0;
-    }
 };
 
 void do_check(char *device)
@@ -55,8 +45,8 @@ void do_check(char *device)
             puts("magic number not correct");
             continue;
         }
-        printf("version: %d, hex: 0x%016lx, cur_inode: %u, l_used: %u, a_used: %u(4k aligned)\n", 
-            ch.version, ch.chunk_id, ch.current_inode, ch.logical_used_space, ch.actual_used_space);
+        printf("version: %d, hex: 0x%016lx, next_inode: %u, l_used: %u, a_used: %u(4k aligned)\n", 
+            ch.version, ch.chunk_id, ch.next_inode, ch.logical_used_space, ch.actual_used_space);
     }
 }
 

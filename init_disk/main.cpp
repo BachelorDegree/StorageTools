@@ -15,12 +15,12 @@ struct chunk_header
     char magic[16];
     int32_t version;
     uint64_t chunk_id;
-    uint32_t current_inode;
+    uint32_t next_inode;
     uint32_t logical_used_space;
     uint32_t actual_used_space;
     chunk_header(uint64_t chunk_id):
         version(1), chunk_id(chunk_id),
-        current_inode(0), logical_used_space(0), actual_used_space(0)
+        next_inode(0), logical_used_space(0), actual_used_space(0)
     {
         strcpy(magic, "ALOHA");
     }
@@ -74,9 +74,8 @@ void do_init(void)
         auto csid = msid;
         csid.SetChunk(chunk_i);
         chunk_header ch(csid.UInt());
-        printf("version: %d, hex: 0x%016lx, cur_inode: %u, l_used: %u, a_used: %u(4k aligned)\n", 
-            ch.version, ch.chunk_id, ch.current_inode, ch.logical_used_space, ch.actual_used_space);
         pwrite64(fd, &ch, sizeof(ch), base_offset + 0); // header
+        printf("Chunk #%04lu, HEX ID: 0x%016lx\n", chunk_i, ch.chunk_id);
     }
 }
 
