@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "SliceId.hpp"
+#include "coredeps/SliceId.hpp"
 int cluster, machine, disk;
 char device[128];
 Storage::SliceId msid;
@@ -18,6 +18,7 @@ struct chunk_header
     uint32_t next_inode;
     uint32_t logical_used_space;
     uint32_t actual_used_space;
+    uint32_t state;
     chunk_header(uint64_t chunk_id):
         version(1), chunk_id(chunk_id),
         next_inode(0), logical_used_space(0), actual_used_space(0)
@@ -25,6 +26,8 @@ struct chunk_header
         strcpy(magic, "ALOHA");
     }
 };
+
+int free_state_chunk = 1;
 
 void do_input(void)
 {
@@ -68,12 +71,27 @@ void do_init(void)
     auto chunk_count = disk_size / chunk_size;
     printf("Disk %s %lu bytes, contains %lu chunks\n", device, disk_size, chunk_count);
 
+    // 需要将一块disk中的一部分给设置为free，其他的为normal
+    // 最少一块，最多占1%的chunk
+    if ((chunk_count / 100) > free_state_chunk)
+    {
+        free_state_chunk = chunk_count / 100;
+    }
+
     for (decltype(chunk_count) chunk_i = 0; chunk_i < chunk_count; ++chunk_i)
     {
         auto base_offset = chunk_i * chunk_size;
         auto csid = msid;
         csid.SetChunk(chunk_i);
         chunk_header ch(csid.UInt());
+        if (chunk_i < free_state_chunk)
+        {
+            ch.state = 4;
+        }
+        else
+        {
+            ch.state = 0;
+        }
         pwrite64(fd, &ch, sizeof(ch), base_offset + 0); // header
         printf("Chunk #%04lu, HEX ID: 0x%016lx\n", chunk_i, ch.chunk_id);
     }

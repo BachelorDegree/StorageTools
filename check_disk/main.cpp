@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "SliceId.hpp"
+#include "coredeps/SliceId.hpp"
 
 struct chunk_header
 {
@@ -15,6 +15,7 @@ struct chunk_header
     uint32_t next_inode;
     uint32_t logical_used_space;
     uint32_t actual_used_space;
+    uint32_t state;
 };
 
 void do_check(char *device)
@@ -45,8 +46,8 @@ void do_check(char *device)
             puts("magic number not correct");
             continue;
         }
-        printf("version: %d, hex: 0x%016lx, next_inode: %u, l_used: %u, a_used: %u(4k aligned)\n", 
-            ch.version, ch.chunk_id, ch.next_inode, ch.logical_used_space, ch.actual_used_space);
+        printf("version: %d, hex: 0x%016lx, next_inode: %u, l_used: %u, a_used: %u, state: %u\n", 
+            ch.version, ch.chunk_id, ch.next_inode, ch.logical_used_space, ch.actual_used_space, ch.state);
     }
 }
 
